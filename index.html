@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnimateAI - Transform Images into Videos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+      --dark-bg: #0a0a0a;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.7);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-pink: #ff6b9d;
+      --accent-blue: #4facfe;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--dark-bg);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Animated background particles */
+    .background-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .background-particles div {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      opacity: 0.7;
+      mix-blend-mode: plus-lighter;
+      box-shadow: 0 0 6px currentColor;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Navigation */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 1.5rem 2rem;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--primary-gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: var(--text-primary);
+      color: var(--dark-bg);
+    }
+
+    .btn-primary:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-1px);
+    }
+
+    /* Main content */
+    .main-content {
+      padding-top: 120px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 2rem 2rem;
+    }
+
+    .hero {
+      max-width: 800px;
+      margin-bottom: 4rem;
+    }
+
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      line-height: 1.1;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      margin-bottom: 3rem;
+      line-height: 1.6;
+    }
+
+    /* Chat interface */
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .chat-input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 1rem;
+      outline: none;
+      padding: 0.5rem 0;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .control-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.8rem;
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: var(--text-primary);
+    }
+
+    .control-btn.primary {
+      background: var(--accent-pink);
+      border-color: var(--accent-pink);
+      color: white;
+    }
+
+    .control-btn.primary:hover {
+      background: #ff5a8a;
+    }
+
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .upload-area:hover {
+      border-color: var(--accent-pink);
+      background: rgba(255, 107, 157, 0.05);
+    }
+
+    .upload-area.dragover {
+      border-color: var(--accent-pink);
+      background: rgba(255, 107, 157, 0.1);
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+
+    .upload-text {
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-subtext {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    .file-preview {
+      display: none;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .file-preview img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .file-info {
+      flex: 1;
+    }
+
+    .file-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .file-size {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .remove-file {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .remove-file:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+    }
+
+    /* Cookie banner */
+    .cookie-banner {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 400px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+    }
+
+    .cookie-banner h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .cookie-banner p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+
+    .cookie-banner a {
+      color: var(--accent-pink);
+      text-decoration: none;
+    }
+
+    .cookie-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .cookie-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .cookie-btn.accept {
+      background: var(--text-primary);
+      color: var(--dark-bg);
+    }
+
+    .cookie-btn.reject {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 1rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+      }
+
+      .main-content {
+        padding: 100px 1rem 1rem;
+      }
+
+      .chat-container {
+        padding: 1rem;
+      }
+
+      .cookie-banner {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+      }
+
+      .cookie-buttons {
+        flex-direction: column;
+      }
+    }
+
+    /* Loading animation */
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-top: 2px solid var(--accent-pink);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Success message */
+    .success-message {
+      display: none;
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      color: #4caf50;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background particles -->
+  <div class="background-particles"></div>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="#" class="logo">
+        <div class="logo-icon">🎬</div>
+        AnimateAI
+      </a>
+      
+      <ul class="nav-links">
+        <li><a href="#community">Community</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#enterprise">Enterprise</a></li>
+        <li><a href="#learn">Learn</a></li>
+        <li><a href="#launched">Launched</a></li>
+      </ul>
+      
+      <div class="nav-buttons">
+        <a href="#" class="btn btn-secondary">Log in</a>
+        <a href="#" class="btn btn-primary">Get started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <div class="hero">
+      <h1>Animate something <span style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">magical</span></h1>
+      <p>Transform your images into stunning animated videos with the power of AI. Simply upload a picture and watch it come to life.</p>
+    </div>
+
+    <!-- Chat interface -->
+    <div class="chat-container">
+      <div class="success-message" id="successMessage">
+        ✅ Animation created successfully! Your video is ready for download.
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        Creating your animation...
+      </div>
+
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📸</div>
+        <div class="upload-text">Drop your image here or click to upload</div>
+        <div class="upload-subtext">Supports JPG, PNG, GIF up to 10MB</div>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+      </div>
+
+      <div class="file-preview" id="filePreview">
+        <img id="previewImage" src="" alt="Preview">
+        <div class="file-info">
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size" id="fileSize"></div>
+        </div>
+        <button class="remove-file" id="removeFile">✕</button>
+      </div>
+
+      <div class="chat-input-container">
+        <input 
+          type="text" 
+          class="chat-input" 
+          id="chatInput"
+          placeholder="Describe how you want your image to be animated..."
+        >
+        <div class="chat-controls">
+          <button class="control-btn" id="addBtn">+</button>
+          <button class="control-btn" id="attachBtn">📎 Attach</button>
+          <button class="control-btn" id="publicBtn">🌐 Public</button>
+          <button class="control-btn primary" id="generateBtn">🎬 Generate</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Cookie banner -->
+  <div class="cookie-banner">
+    <h3>Choose your cookies</h3>
+    <p>We use cookies to enhance your animation experience and keep your data secure. <a href="#">Cookie Settings</a></p>
+    <div class="cookie-buttons">
+      <button class="cookie-btn accept" id="acceptCookies">Accept all</button>
+      <button class="cookie-btn reject" id="rejectCookies">Reject non-essential cookies</button>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import anime.js
+    import { animate, createTimeline, stagger, utils } from './anime.esm.js';
+
+    // ===== BACKGROUND ANIMATION (infinite forward movement) =====
+    function createBackgroundAnimation() {
+      const particlesContainer = document.querySelector('.background-particles');
+      
+      // Clear any existing particles
+      particlesContainer.innerHTML = '';
+
+      // Create 80 particles distributed across the screen
+      for (let i = 0; i < 80; i++) {
+        const particle = document.createElement('div');
+        
+        // Random position across the entire screen
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        
+        // Lovable-inspired colors (pink to purple)
+        const hue = 280 + Math.random() * 80;
+        const saturation = 60 + Math.random() * 20;
+        const lightness = 40 + Math.random() * 20;
+        
+        particle.style.cssText = `
+          position: absolute;
+          width: 3px;
+          height: 3px;
+          background: hsl(${hue}, ${saturation}%, ${lightness}%);
+          border-radius: 50%;
+          left: ${x}%;
+          top: ${y}%;
+          opacity: 0.7;
+          mix-blend-mode: plus-lighter;
+          box-shadow: 0 0 6px currentColor;
+        `;
+        
+        particlesContainer.appendChild(particle);
+        
+        // Create infinite forward movement - particles keep moving in one direction
+        const directionX = (Math.random() - 0.5) * 2; // -1 to 1
+        const directionY = (Math.random() - 0.5) * 2; // -1 to 1
+        const speed = 0.5 + Math.random() * 1; // 0.5 to 1.5 pixels per second
+        
+        // Use CSS animation for truly infinite movement
+        particle.style.animation = `
+          float ${20 + Math.random() * 40}s linear infinite
+        `;
+        
+        // Set CSS keyframes for infinite movement
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes float {
+            0% {
+              transform: translate(0, 0);
+            }
+            100% {
+              transform: translate(${directionX * 200}px, ${directionY * 200}px);
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
+    // ===== FILE UPLOAD FUNCTIONALITY =====
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const filePreview = document.getElementById('filePreview');
+    const previewImage = document.getElementById('previewImage');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const removeFile = document.getElementById('removeFile');
+    const chatInput = document.getElementById('chatInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loading');
+    const successMessage = document.getElementById('successMessage');
+
+    // Upload area click
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    // Handle file selection
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size must be less than 10MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImage.src = e.target.result;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        uploadArea.style.display = 'none';
+        filePreview.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Remove file
+    removeFile.addEventListener('click', () => {
+      fileInput.value = '';
+      uploadArea.style.display = 'block';
+      filePreview.style.display = 'none';
+    });
+
+    // Format file size
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Generate animation
+    generateBtn.addEventListener('click', () => {
+      if (!fileInput.files[0]) {
+        alert('Please upload an image first.');
+        return;
+      }
+
+      if (!chatInput.value.trim()) {
+        alert('Please describe how you want your image to be animated.');
+        return;
+      }
+
+      // Show loading state
+      loading.style.display = 'flex';
+      generateBtn.disabled = true;
+
+      // Simulate API call
+      setTimeout(() => {
+        loading.style.display = 'none';
+        successMessage.style.display = 'block';
+        generateBtn.disabled = false;
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          successMessage.style.display = 'none';
+        }, 5000);
+      }, 3000);
+    });
+
+    // Cookie banner
+    const acceptCookies = document.getElementById('acceptCookies');
+    const rejectCookies = document.getElementById('rejectCookies');
+    const cookieBanner = document.querySelector('.cookie-banner');
+
+    acceptCookies.addEventListener('click', () => {
+      cookieBanner.style.display = 'none';
+      localStorage.setItem('cookiesAccepted', 'true');
+    });
+
+    rejectCookies.addEventListener('click', () => {
+      cookieBanner.style.display = 'none';
+      localStorage.setItem('cookiesAccepted', 'false');
+    });
+
+    // Hide cookie banner if already accepted/rejected
+    if (localStorage.getItem('cookiesAccepted')) {
+      cookieBanner.style.display = 'none';
+    }
+
+    // Add smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add some interactive animations
+    const logo = document.querySelector('.logo');
+    logo.addEventListener('mouseenter', () => {
+      logo.style.transform = 'scale(1.05)';
+      logo.style.transition = 'transform 0.3s ease';
+    });
+
+    logo.addEventListener('mouseleave', () => {
+      logo.style.transform = 'scale(1)';
+    });
+
+    // Add typing effect to chat input placeholder
+    const placeholders = [
+      'Describe how you want your image to be animated...',
+      'Make the waves move gently...',
+      'Add a subtle breathing effect...',
+      'Create a magical sparkle animation...',
+      'Make the clouds drift across the sky...'
+    ];
+
+    let currentPlaceholder = 0;
+    setInterval(() => {
+      if (document.activeElement !== chatInput) {
+        chatInput.placeholder = placeholders[currentPlaceholder];
+        currentPlaceholder = (currentPlaceholder + 1) % placeholders.length;
+      }
+    }, 3000);
+
+    // Initialize background animation when page loads
+    document.addEventListener('DOMContentLoaded', createBackgroundAnimation);
+    
+    // Also start if DOM is already loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', createBackgroundAnimation);
+    } else {
+      createBackgroundAnimation();
+    }
+  </script>
+</body>
+</html>
