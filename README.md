@@ -22,7 +22,8 @@ The landing page uses a beautiful gradient color palette inspired by Lovable:
 
 The page features a sophisticated particle animation system that:
 - Creates 80 floating particles across the entire screen
-- Uses infinite forward movement (no looping back)
+- Uses pure CSS animations for optimal performance
+- Infinite forward movement (no looping back)
 - Particles move in random directions continuously
 - Colors match the Lovable-inspired palette (pink to purple)
 - Smooth, non-distracting movement
@@ -61,7 +62,6 @@ Simply open `index.html` in your web browser, though some features may not work 
 ```
 animateai/
 ├── index.html          # Main landing page
-├── anime.esm.js        # Anime.js library for animations
 └── README.md           # This file
 ```
 
@@ -70,7 +70,7 @@ animateai/
 - **HTML5**: Semantic markup
 - **CSS3**: Modern styling with gradients, glassmorphism, and animations
 - **JavaScript (ES6)**: Interactive functionality and file handling
-- **Anime.js**: Smooth particle animations and transitions
+- **Pure CSS Animations**: Lightweight, performant particle animations
 
 ## Browser Support
 
